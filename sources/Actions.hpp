@@ -10,5 +10,5 @@ namespace coup
         transfer = 3,
         steal = 4,
         tax =5
-    }
+    };
 }

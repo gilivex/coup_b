@@ -2,88 +2,104 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <utility>
+#include <unordered_map>
+
+const int max_players =6;
 using namespace std;
 using namespace coup;
 
-vector<string> Game::players()
+namespace coup
 {
-    vector<string> Players_names = [];
-    for (p : livePlayers)
+    vector<string> Game::players()
     {
-        Players_names.push_back(p.get_name());
+        vector<string> Players_names;
+        for (size_t i = 0; i <= this->num_of_players; i++)
+        {
+            if (this->livePlayers.at(i) != NULL)
+            {
+
+                Players_names.push_back(this->livePlayers[i]->get_name());
+            }
+        }
+
+        return Players_names;
     }
-    return Players_names;
-}
-Game &Game::add_player(Player *new_Player)
-{
-    if (alive)
+    Game &Game::add_player(Player &new_Player)
     {
-        throw invalid_argument("Please wait to the next round, The game has started")
+        if (alive)
+        {
+            throw invalid_argument("Please wait to the next round, The game has started");
+        }
+        if (num_of_players > max_players)
+        {
+            throw invalid_argument("The Game is full");
+        }
+        num_of_players++;
+        new_Player.set_turn(num_of_players);
+        this->livePlayers.emplace(num_of_players, &new_Player);
+        return *this;
+    }
+    string Game::turn()
+    {
+        return (livePlayers.at(curr_turn)->get_name());
     }
 
-    if (num_of_players > 5)
+    string Game::winner()
     {
-        throw invalid_argument("The Game is full")
+        if (alive)
+        {
+            throw invalid_argument{"the game is still running"};
+        }
+        if (livePlayers.size() != 1)
+        {
+            throw invalid_argument{"there is still more then one Player in the game"};
+        }
+
+        {
+            return players().at(0);
+        }
     }
-    num_of_players++;
-    new_Player->set_turn(num_of_players);
-    livePlayers[num_of_players] = new_Player;
-    return *this;
-}
-string Game::turn()
-{
-    return (livePlayers.at(curr_turn)->get_name());
-}
+        bool Game::is_alive()const
+        {
+            return alive;
+        }
+        void Game::set_is_alive(bool status)
+        {
+            alive = status;
+        }
 
-string Game::winner()
-{
-    if (alive)
-    {
-        throw invalid_argument{"the game is still running"};
-    }
-    if (livePlayers.size() != 1)
-    {
-        throw invalid_argument{"there is still more then one Player in the game"};
-    }
-    else
-    {
-        return players().at(0);
-    }
-}
+        int Game::num_players()const
+        {
+            return num_of_players;
+        }
 
-bool Game::is_alive()
-{
-    return alive;
-}
+        unordered_map<int, Player *> &Game::getLivePlayers()
+        {
+            return livePlayers;
+        }
 
-int Game::num_players()
-{
-    return num_of_players;
-}
+        void Game::next_turn()
+        {
+            do
+            {
+                curr_turn++;
+                curr_turn%=(num_of_players+1);
+            } while (livePlayers.at(curr_turn) == NULL);
+        }
 
-unordered_map<int, Player &>& Game::getLivePlayers(){
-    return livePlayers;
-}
+        void Game::remove_player(Player & player)
+        {
+            if (livePlayers.at(player.get_turn()) == NULL)
+            {
+                throw invalid_argument{"the player is not in the game"};
+            }
+            livePlayers[player.get_turn()] = NULL;
+            if (players().size() == 1)
+            {
+                alive = false;
+            }
+            
 
-void Game::next_turn()
-{
-    do
-    {
-        curr_turn++;
-    } while (livePlayers.find(curr_turn) == livePlayers.end());
-}
-
-
-void Game::remove_player(Player &player)
-{
-    if (livePlayers.find(new_Player) == livePlayers.end()){
-        throw invalid_argument{"the player is not in the game"};
-    }
-    livePlayers.erase(player.get_turn());
-    if (livePlayers.size() ==1)
-    {
-        alive = false;
-    }
-    
-    return *this;
-}
+        }
+    };

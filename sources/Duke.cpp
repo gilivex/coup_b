@@ -7,18 +7,42 @@ using namespace std;
 namespace coup
 {
 
-    Duke& Duke::tax()
+    Duke &Duke::tax()
     {
-        this->player_coins+=3;
+        if (!currGame->is_alive())
+        {
+            throw invalid_argument{"Game over"};
+        }
+        if (currGame->curr_turn != player_turn)
+        {
+            throw invalid_argument{"this is not your turn"};
+        }
+        this->add_coins(3);
+        currGame->game_action[this->player_turn] = this;
+        currGame->getLivePlayers().at(this->player_turn)->last_action = Actions::tax;
+        currGame->next_turn();
         return *this;
     }
-    Duke& Duke::block(Player p1)
+
+    Duke &Duke::block(Player &p1)
     {
-        if (p1.foreign_aid)
+        if (!p1.get_in_game())
         {
-            p1.player_coins-=2;
+            throw invalid_argument{"the player is not in the game"};
         }
-        
+
+        if (currGame->game_action.at(p1.get_turn())->last_action == Actions::foreign_aid)
+        {
+            if (p1.get_coins() == 1)
+            {
+                p1.add_coins(-1);
+            }
+            else if (p1.get_coins() > 1)
+            {
+                p1.add_coins(-2);
+            }
+        }
+
         return *this;
     }
 };

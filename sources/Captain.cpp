@@ -9,23 +9,23 @@ namespace coup
 {
     Captain &Captain::steal(Player &p1)
     {
-        if (!currGame.is_alive())
+        if (!currGame->is_alive())
         {
             throw invalid_argument{"Game over"};
         }
-        if (currGame.curr_turn != player_turn)
+        if (currGame->curr_turn != player_turn)
         {
             throw invalid_argument{"this is not your turn"};
         }
-        if (!(p1->in_game))
+        if (!(p1.get_in_game()))
         {
-            throw invalid_argument { "this player is not in the game!" }
+            throw invalid_argument { "this player is not in the game!" };
         }
-        if (p1->coins == 0)
+        if (p1.coins() == 0)
         {
-            throw invalid_argument { "this player has no coins at all" }
+            throw invalid_argument { "this player has no coins at all" };
         }
-        if (p1->coins == 1)
+        if (p1.coins() == 1)
         {
             p1.add_coins(-1);
             this->player_coins++;
@@ -35,9 +35,9 @@ namespace coup
             p1.add_coins(-2);
             this->player_coins += 2;
         }
-        currGame.game_action[this->player_turn].first = p1.player_turn;
-        currGame.game_action[this->player_turn].second = Actions::steal;
-        currGame.next_turn();
+        currGame->game_action[this->player_turn] = &p1;
+        currGame->getLivePlayers().at(this->player_turn)->last_action = Actions::steal;
+        currGame->next_turn();
         return *this;
     }
 
@@ -47,17 +47,17 @@ namespace coup
         {
             throw invalid_argument{"the player is not in the game"};
         }
-        if (currGame.game_action.at(p1.get_turn()).second == Actions::steal)
+        if (currGame->game_action.at(p1.get_turn())->last_action == Actions::steal)
         {
-            int id = currGame.game_action.at(p1.get_turn()).first;
+            int id = currGame->game_action.at(p1.get_turn())->get_turn();
             
             //if the p2 is not in the game anymore.
-            if (currGame.getLivePlayers().find(id) == currGame.getLivePlayers().end())
+            if (currGame->getLivePlayers().at(id) == NULL)
             {
                 return *this;
             }
             p1.add_coins(-2);
-            currGame.getLivePlayers().at(id).add_coins(2);
+            currGame->getLivePlayers().at(id)->add_coins(2);
         }
 
         return *this;

@@ -4,6 +4,7 @@
 #include "Player.hpp"
 
 using namespace std;
+using namespace coup;
 
 namespace coup
 {

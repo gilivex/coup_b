@@ -4,10 +4,24 @@
 #include "Player.hpp"
 #include "Actions.hpp"
 
+const int normal_coup = 7;
+const int max_coins = 10;
 using namespace std;
 using namespace coup;
 namespace coup
 {
+  Player::Player(Game &game, string const &name, string const & role) 
+  {
+    this->currGame=&game;
+    this->player_coins =0;
+    this->in_game = true;
+    this->name = name;
+    this->my_role = role;
+    this->player_turn = -1;
+    this->last_action = Actions::income;
+    currGame->add_player(*this);
+    
+  }
 
   string Player::role()
   {
@@ -16,21 +30,21 @@ namespace coup
 
   Player &Player::income()
   {
-    if (!currGame.is_alive() && currGame.getLivePlayers().size() > 1)
+    if (!currGame->is_alive() && currGame->getLivePlayers().size() > 1)
     {
-      currGame.is_alive = true;
-      currGame.curr_turn++;
+      currGame->set_is_alive(true);
+      // currGame->curr_turn++;
     }
-    if (!currGame.is_alive())
+    if (!currGame->is_alive())
     {
       throw invalid_argument{"Game over"};
     }
-    if (currGame.curr_turn != player_turn)
+    if (currGame->curr_turn != player_turn)
     {
       throw invalid_argument{"this is not your turn"};
     }
 
-    if (this->player_coins >= 10)
+    if (this->player_coins >= max_coins)
     {
       cout << "you must to make coup" << endl;
     }
@@ -38,45 +52,46 @@ namespace coup
     {
       player_coins++;
     }
-    currGame.game_action[this->player_turn].first = this->player_turn;
-    currGame.game_action[this->player_turn].second = Actions::income;
-    currGame.next_turn();
+    // currGame.game_action[this->player_turn][*this] = Actions::income;
+    currGame->game_action[this->player_turn] = this;
+    this->last_action = Actions::income;
+    // currGame.game_action[this->player_turn].first = *this;
+    // currGame.game_action[this->player_turn].second = Actions::income;
+    currGame->next_turn();
     return *this;
   }
 
   Player &Player::foreign_aid()
   {
-    if (!currGame.is_alive())
+    if (!currGame->is_alive())
     {
       throw invalid_argument{"Game over"};
     }
 
-    if (currGame.curr_turn != player_turn)
+    if (currGame->curr_turn != player_turn)
     {
       throw invalid_argument{"this is not your turn"};
     }
 
-    if (this->player_coins >= 10)
+    if (this->player_coins >= max_coins)
     {
       throw invalid_argument(" You cann't take any coins, you must curry out a coup");
     }
-    else
-    {
-      player_coins += 2;
-    }
-    currGame.game_action[this->player_turn].first = this->player_turn;
-    currGame.game_action[this->player_turn].second = Actions::foreign_aid;
-    currGame.next_turn();
+    player_coins += 2;
+
+    currGame->game_action[this->player_turn] = this;
+    currGame->getLivePlayers().at(this->player_turn)->last_action = Actions::foreign_aid;
+    currGame->next_turn();
     return *this;
   }
 
   Player &Player::coup(Player &p1)
   {
-    if (!currGame.is_alive())
+    if (!currGame->is_alive())
     {
       throw invalid_argument{"Game over"};
     }
-    if (currGame.curr_turn != player_turn)
+    if (currGame->curr_turn != player_turn)
     {
       throw invalid_argument{"this is not your turn"};
     }
@@ -86,30 +101,30 @@ namespace coup
       throw invalid_argument(" The player is allready out of the game");
     }
 
-    if (*this->coins < 7)
+    if (this->coins() < normal_coup)
     {
       throw invalid_argument("you don't have enough money to create a coup");
     }
 
-    currGame.remove_player(p1);
+    currGame->remove_player(p1);
     p1.in_game = false;
-    this->player_coins -= 7;
-    currGame.game_action[this->player_turn].first = p1.player_turn;
-    currGame.game_action[this->player_turn].second = Actions::coup;
-    currGame.next_turn();
+    this->player_coins -= normal_coup;
+    currGame->game_action[this->player_turn] = &p1;
+    currGame->getLivePlayers().at(this->player_turn)->last_action = Actions::coup;
+    currGame->next_turn();
     return *this;
   }
 
   Player &Player::block()
   {
-    if (!currGame.is_alive())
+    if (!currGame->is_alive())
     {
       throw invalid_argument{"Game over"};
     }
     throw runtime_error("you cannot do this action");
   }
 
-  int Player::coins()
+  int Player:: coins()const
   {
     if (!this->in_game)
     {
@@ -122,7 +137,7 @@ namespace coup
   {
     player_turn = turn;
   }
-  int Player::get_turn()
+  int Player::get_turn()const
   {
     return player_turn;
   }
@@ -131,11 +146,21 @@ namespace coup
     return name;
   }
 
-  bool Player::get_in_game()
+  bool Player:: get_in_game()const
   {
     return in_game;
   }
-  void Player::add_coins(int coins){
-      this->player_coins+=coins;
+  void Player::set_in_game(bool is_in_game)
+  {
+    this->in_game = is_in_game;
+  }
+
+  void Player::add_coins(int coins)
+  {
+    this->player_coins += coins;
+  }
+  int Player::get_coins()const
+  {
+    return player_coins;
   }
 }
