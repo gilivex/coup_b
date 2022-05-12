@@ -59,6 +59,9 @@ namespace coup
             p1.add_coins(-2);
             currGame->getLivePlayers().at(id)->add_coins(2);
         }
+        else {
+            throw invalid_argument("cann't block this action");
+        }
 
         return *this;
     }

@@ -27,18 +27,19 @@ namespace coup
         {
             throw invalid_argument{"you don't have engthe coins"};
         }
-        if (this->coins() > 3 && this->coins() < normal_coup)
+        if (this->coins() >= 3 && this->coins() < normal_coup)
         {
-            p1.add_coins(-3);
+            this->add_coins(-3);
+            currGame->getLivePlayers().at(this->player_turn)->last_action = Actions::coup3;
         }
         else
         {
-            p1.add_coins(-(normal_coup));
+            this->add_coins(-(normal_coup));
+            currGame->getLivePlayers().at(this->player_turn)->last_action = Actions::coup;
         }
-        currGame->remove_player(p1);
         p1.set_in_game(false);
         currGame->game_action[this->player_turn] = &p1;
-        currGame->getLivePlayers().at(this->player_turn)->last_action = Actions::coup;
+        currGame->remove_player(p1);
         currGame->next_turn();
 
         return *this;

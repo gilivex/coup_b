@@ -54,6 +54,9 @@ namespace coup
             p1.add_coins(-2);
             this->currGame->game_action.at(p1.get_turn())->add_coins(2);
         }
+        else {
+            throw invalid_argument("cann't block this action");
+        }
 
         return *this;
     }

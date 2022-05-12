@@ -4,23 +4,27 @@
 #include "Player.hpp"
 #include "Actions.hpp"
 
+const int max_players = 6;
 const int normal_coup = 7;
 const int max_coins = 10;
 using namespace std;
 using namespace coup;
 namespace coup
 {
-  Player::Player(Game &game, string const &name, string const & role) 
+  Player::Player(Game &game, string const &name, string const &role)
   {
-    this->currGame=&game;
-    this->player_coins =0;
+    if (game.getLivePlayers().size() >= max_players)
+    {
+      throw invalid_argument("The Game is full");
+    }
+    this->currGame = &game;
+    this->player_coins = 0;
     this->in_game = true;
     this->name = name;
     this->my_role = role;
     this->player_turn = -1;
     this->last_action = Actions::income;
     currGame->add_player(*this);
-    
   }
 
   string Player::role()
@@ -33,7 +37,6 @@ namespace coup
     if (!currGame->is_alive() && currGame->getLivePlayers().size() > 1)
     {
       currGame->set_is_alive(true);
-      // currGame->curr_turn++;
     }
     if (!currGame->is_alive())
     {
@@ -52,17 +55,18 @@ namespace coup
     {
       player_coins++;
     }
-    // currGame.game_action[this->player_turn][*this] = Actions::income;
     currGame->game_action[this->player_turn] = this;
     this->last_action = Actions::income;
-    // currGame.game_action[this->player_turn].first = *this;
-    // currGame.game_action[this->player_turn].second = Actions::income;
     currGame->next_turn();
     return *this;
   }
 
   Player &Player::foreign_aid()
   {
+    if (!currGame->is_alive() && currGame->getLivePlayers().size() > 1)
+    {
+      currGame->set_is_alive(true);
+    }
     if (!currGame->is_alive())
     {
       throw invalid_argument{"Game over"};
@@ -106,11 +110,11 @@ namespace coup
       throw invalid_argument("you don't have enough money to create a coup");
     }
 
-    currGame->remove_player(p1);
     p1.in_game = false;
     this->player_coins -= normal_coup;
     currGame->game_action[this->player_turn] = &p1;
     currGame->getLivePlayers().at(this->player_turn)->last_action = Actions::coup;
+    currGame->remove_player(p1);
     currGame->next_turn();
     return *this;
   }
@@ -124,7 +128,7 @@ namespace coup
     throw runtime_error("you cannot do this action");
   }
 
-  int Player:: coins()const
+  int Player::coins() const
   {
     if (!this->in_game)
     {
@@ -137,7 +141,7 @@ namespace coup
   {
     player_turn = turn;
   }
-  int Player::get_turn()const
+  int Player::get_turn() const
   {
     return player_turn;
   }
@@ -146,7 +150,7 @@ namespace coup
     return name;
   }
 
-  bool Player:: get_in_game()const
+  bool Player::get_in_game() const
   {
     return in_game;
   }
@@ -159,7 +163,7 @@ namespace coup
   {
     this->player_coins += coins;
   }
-  int Player::get_coins()const
+  int Player::get_coins() const
   {
     return player_coins;
   }

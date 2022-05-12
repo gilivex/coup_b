@@ -9,6 +9,7 @@ namespace coup
         coup = 2,
         transfer = 3,
         steal = 4,
-        tax =5
+        tax =5,
+        coup3 = 6
     };
 }

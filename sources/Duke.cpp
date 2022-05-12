@@ -9,6 +9,10 @@ namespace coup
 
     Duke &Duke::tax()
     {
+        if (!currGame->is_alive() && currGame->getLivePlayers().size() > 1)
+        {
+            currGame->set_is_alive(true);
+        }
         if (!currGame->is_alive())
         {
             throw invalid_argument{"Game over"};
@@ -41,6 +45,10 @@ namespace coup
             {
                 p1.add_coins(-2);
             }
+        }
+        else
+        {
+            throw invalid_argument("cann't block this action");
         }
 
         return *this;
